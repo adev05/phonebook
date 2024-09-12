@@ -18,23 +18,14 @@ const db = {}
 db.Sequelize = Sequelize
 db.sequelize = sequelize
 
-db.persons = require('./person.model.js')(sequelize, Sequelize)
+db.users = require('./user.model.js')(sequelize, Sequelize)
 db.addresses = require('./address.model.js')(sequelize, Sequelize)
 db.contacts = require('./contact.model.js')(sequelize, Sequelize)
 
-db.contacts.belongsTo(db.persons, {
-	foreignKey: 'person_id',
-	as: 'person',
-})
+db.users.hasOne(db.contacts, { foreignKey: 'user_id' })
+db.contacts.belongsTo(db.users, { foreignKey: 'user_id' })
 
-db.addresses.hasOne(db.persons, {
-	foreignKey: 'address_id',
-	as: 'person',
-})
-
-db.persons.belongsTo(db.addresses, {
-	foreignKey: 'address_id',
-	as: 'address',
-})
+db.users.hasOne(db.addresses, { foreignKey: 'user_id' })
+db.addresses.belongsTo(db.users, { foreignKey: 'user_id' })
 
 module.exports = db

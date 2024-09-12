@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Montserrat } from 'next/font/google'
 
-const montserrat = Montserrat({ subsets: ['latin'] })
+const montserrat = Montserrat({ subsets: ['cyrillic', 'latin'], weight: '400' })
 
 export const metadata: Metadata = {
 	title: 'Phone Book',

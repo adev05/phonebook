@@ -4,5 +4,7 @@ module.exports = app => {
 
 	router.get('/findAll', contacts.findAll)
 
+	router.get('/findById/:id', contacts.findById)
+
 	app.use('/api/contacts', router)
 }
