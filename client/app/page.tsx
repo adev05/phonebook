@@ -9,6 +9,8 @@ export default function Home() {
 		number | undefined
 	>()
 
+	const [deletedContactId, setDeletedContactId] = useState<number | undefined>()
+
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
@@ -29,8 +31,14 @@ export default function Home() {
 				<Sidebar
 					selectedContactId={selectedContactId}
 					setSelectedContactId={setSelectedContactId}
+					deletedContactId={deletedContactId}
+					setDeletedContactId={setDeletedContactId}
 				/>
-				<Contact selectedContactId={selectedContactId} />
+				<Contact
+					selectedContactId={selectedContactId}
+					setSelectedContactId={setSelectedContactId}
+					setDeletedContactId={setDeletedContactId}
+				/>
 			</div>
 		</main>
 	)

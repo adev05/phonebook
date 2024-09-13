@@ -6,5 +6,9 @@ module.exports = app => {
 
 	router.get('/findById/:id', contacts.findById)
 
+	router.get('/generateByCount/:count', contacts.generateByCount)
+
+	router.delete('/delete/:id', contacts.delete)
+
 	app.use('/api/contacts', router)
 }

@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Badge } from './ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
 import StarIcon from '@heroicons/react/16/solid/StarIcon'
+import { ArrowLongLeftIcon, PencilIcon } from '@heroicons/react/16/solid'
 
 interface Contact {
 	id: number
@@ -23,15 +24,19 @@ interface Contact {
 
 export default function Contact({
 	selectedContactId,
+	setSelectedContactId,
+	setDeletedContactId,
 }: {
 	selectedContactId: number | undefined
+	setSelectedContactId: Dispatch<SetStateAction<number | undefined>>
+	setDeletedContactId: Dispatch<SetStateAction<number | undefined>>
 }) {
 	const [contact, setContact] = useState<Contact | null>(null)
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
-		async function fetchContactById() {
+		async function fetchContact() {
 			if (!selectedContactId) return
 
 			setLoading(true)
@@ -57,8 +62,44 @@ export default function Contact({
 			}
 		}
 
-		fetchContactById()
+		fetchContact()
 	}, [selectedContactId])
+
+	async function deleteContact(id: number) {
+		console.log('deleteContact', id)
+		setLoading(true)
+		setError(null)
+
+		try {
+			let data = await fetch(
+				'http://localhost:8080/api/contacts/delete/' + selectedContactId,
+				{
+					method: 'DELETE',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			)
+			if (!data.ok) {
+				throw new Error('Failed to fetch contact')
+			}
+			console.log('Item deleted successfully')
+
+			setDeletedContactId(id)
+		} catch (error) {
+			if (error instanceof Error) {
+				setError(error.message)
+			} else {
+				setError('An unknown error occurred')
+			}
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	function editContact() {
+		console.log('editContact')
+	}
 
 	if (!selectedContactId) {
 		return (
@@ -94,7 +135,25 @@ export default function Contact({
 
 	return (
 		<main className='grow flex flex-col gap-4 items-center justify-center'>
-			<Avatar className='size-24'>
+			<div className='flex justify-between items-center w-full max-w-sm'>
+				<Badge
+					variant='outline'
+					className='font-thin cursor-pointer'
+					onClick={() => setSelectedContactId(undefined)}
+				>
+					<ArrowLongLeftIcon className='size-3.5' />
+					<p className='text-sm ml-2'>Назад</p>
+				</Badge>
+				<Badge
+					variant='outline'
+					className='font-thin cursor-pointer'
+					onClick={() => editContact()}
+				>
+					<PencilIcon className='size-3.5' />
+					<p className='text-sm ml-2'>Изменить</p>
+				</Badge>
+			</div>
+			<Avatar className='size-24 cursor-pointer' id='avatar'>
 				<AvatarFallback>{`${contact.first_name[0]}${contact.last_name[0]}`}</AvatarFallback>
 			</Avatar>
 			<h1 className='text-lg font-semibold flex gap-2 items-center'>
@@ -114,7 +173,6 @@ export default function Contact({
 					value={contact.phone_number}
 				/>
 			</div>
-			{/* <p className='text-sm'>Важный: {contact.is_important ? 'Да' : 'Нет'}</p> */}
 			<div className='grid w-full max-w-sm items-center gap-1.5'>
 				<Label htmlFor='birth'>Дата рождения</Label>
 				<Input
@@ -138,6 +196,15 @@ export default function Contact({
 					value={`${contact.street}, ${contact.house_number}, ${contact.apartment_number}, ${contact.city}`}
 				/>
 			</div>
+
+			{/* <div className='flex gap-4'>
+				<Button variant='destructive' onClick={() => deleteContact(contact.id)}>
+					Удалить контакт
+				</Button>
+				<Button variant='outline' onClick={() => editContact()}>
+					Изменить контакт
+				</Button>
+			</div> */}
 		</main>
 	)
 }
