@@ -36,6 +36,10 @@ app.get('/', (req, res) => {
 })
 
 require('./app/routes/contact.routes')(app)
+require('./app/routes/firstName.routes')(app)
+require('./app/routes/lastName.routes')(app)
+require('./app/routes/middleName.routes')(app)
+require('./app/routes/street.routes')(app)
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080

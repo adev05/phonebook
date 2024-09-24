@@ -5,13 +5,21 @@ module.exports = (sequelize, Sequelize) => {
 			autoIncrement: true,
 			primaryKey: true,
 		},
-		phone_number: {
+		house: {
 			type: Sequelize.STRING,
 			allowNull: false,
 		},
-		is_important: {
-			type: Sequelize.BOOLEAN,
-			defaultValue: false,
+		corpus: {
+			type: Sequelize.STRING,
+			allowNull: false,
+		},
+		flat: {
+			type: Sequelize.INTEGER,
+			allowNull: false,
+		},
+		phone: {
+			type: Sequelize.STRING,
+			allowNull: false,
 		},
 	})
 
