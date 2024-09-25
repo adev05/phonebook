@@ -10,16 +10,24 @@ import { ArrowLongLeftIcon, PencilIcon } from '@heroicons/react/16/solid'
 
 interface Contact {
 	id: number
-	phone_number: string
-	is_important: boolean
-	first_name: string
-	last_name: string
-	birth_date: Date // или Date, в зависимости от того, как вы хотите обрабатывать дату
-	email: string
-	city: string
+	// phone_number: string
+	// is_important: boolean
+	// first_name: string
+	// last_name: string
+	// birth_date: Date // или Date, в зависимости от того, как вы хотите обрабатывать дату
+	// email: string
+	// city: string
+	// street: string
+	// house_number: string
+	// apartment_number: string
+	firstName: string
+	lastName: string
+	middleName: string
 	street: string
-	house_number: string
-	apartment_number: string
+	house: string
+	corpus: string
+	flat: number
+	phone: string
 }
 
 export default function Contact({
@@ -154,57 +162,46 @@ export default function Contact({
 				</Badge>
 			</div>
 			<Avatar className='size-24 cursor-pointer' id='avatar'>
-				<AvatarFallback>{`${contact.first_name[0]}${contact.last_name[0]}`}</AvatarFallback>
+				<AvatarFallback>{`${contact.firstName[0]}${contact.lastName[0]}`}</AvatarFallback>
 			</Avatar>
 			<h1 className='text-lg font-semibold flex gap-2 items-center'>
-				{`${contact.first_name} ${contact.last_name}`}
-				{contact.is_important ? (
-					<StarIcon className='size-4 text-yellow-500' />
-				) : (
-					''
-				)}
+				{`${contact.firstName} ${contact.middleName} ${contact.lastName}`}
 			</h1>
 			<div className='grid w-full max-w-sm items-center gap-1.5'>
 				<Label htmlFor='phone'>Телефон</Label>
-				<Input
-					readOnly={true}
-					type='text'
-					id='phone'
-					value={contact.phone_number}
-				/>
-			</div>
-			<div className='grid w-full max-w-sm items-center gap-1.5'>
-				<Label htmlFor='birth'>Дата рождения</Label>
-				<Input
-					readOnly={true}
-					type='text'
-					id='birth'
-					value={new Date(contact.birth_date).toLocaleDateString()}
-				/>
-			</div>
-			<div className='grid w-full max-w-sm items-center gap-1.5'>
-				<Label htmlFor='email'>Email</Label>
-				<Input readOnly={true} type='text' id='email' value={contact.email} />
+				<Input readOnly={true} type='text' id='phone' value={contact.phone} />
 			</div>
 
-			<div className='grid w-full max-w-sm items-center gap-1.5'>
-				<Label htmlFor='address'>Адрес</Label>
-				<Input
-					readOnly={true}
-					type='text'
-					id='address'
-					value={`${contact.street}, ${contact.house_number}, ${contact.apartment_number}, ${contact.city}`}
-				/>
+			<div className='flex gap-2'>
+				<div className='grid w-full max-w-sm items-center gap-1.5'>
+					<Label htmlFor='street'>Улица</Label>
+					<Input
+						readOnly={true}
+						type='text'
+						id='street'
+						value={contact.street}
+					/>
+				</div>
+				<div className='grid w-full max-w-sm items-center gap-1.5'>
+					<Label htmlFor='house'>Дом</Label>
+					<Input readOnly={true} type='text' id='house' value={contact.house} />
+				</div>
 			</div>
-
-			{/* <div className='flex gap-4'>
-				<Button variant='destructive' onClick={() => deleteContact(contact.id)}>
-					Удалить контакт
-				</Button>
-				<Button variant='outline' onClick={() => editContact()}>
-					Изменить контакт
-				</Button>
-			</div> */}
+			<div className='flex gap-2'>
+				<div className='grid w-full max-w-sm items-center gap-1.5'>
+					<Label htmlFor='corpus'>Корпус</Label>
+					<Input
+						readOnly={true}
+						type='text'
+						id='corpus'
+						value={contact.corpus}
+					/>
+				</div>
+				<div className='grid w-full max-w-sm items-center gap-1.5'>
+					<Label htmlFor='flat'>Квартира</Label>
+					<Input readOnly={true} type='text' id='flat' value={contact.flat} />
+				</div>
+			</div>
 		</main>
 	)
 }

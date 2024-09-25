@@ -10,162 +10,139 @@ const Street = db.street
 const { faker } = require('@faker-js/faker')
 
 exports.findAll = (req, res) => {
-	// Contact.findAll({
-	// 	include: [
-	// 		{
-	// 			model: User,
-	// 			as: 'user',
-	// 		},
-	// 	],
-	// 	order: [
-	// 		[{ model: User }, 'first_name', 'ASC'],
-	// 		[{ model: User }, 'last_name', 'ASC'],
-	// 	],
-	// })
-	// 	.then(data => {
-	// 		const modifiedData = data.map(contact => {
-	// 			return {
-	// 				id: contact.id,
-	// 				phone_number: contact.phone_number,
-	// 				is_important: contact.is_important,
-	// 				first_name: contact.user.first_name,
-	// 				last_name: contact.user.last_name,
-	// 			}
-	// 		})
-	// 		res.send(modifiedData)
-	// 	})
-	// 	.catch(err => {
-	// 		res.status(500).send({
-	// 			message:
-	// 				err.message || 'Some error occurred while retrieving contacts.',
-	// 		})
-	// 	})
+	const offset = req.query.offset
+	const limit = req.query.limit
+
+	Contact.findAll({
+		include: [
+			{
+				model: FirstName,
+				as: 'firstName',
+			},
+			{
+				model: LastName,
+				as: 'lastName',
+			},
+		],
+		order: [
+			[{ model: FirstName }, 'firstName', 'ASC'],
+			[{ model: LastName }, 'lastName', 'ASC'],
+		],
+		offset,
+		limit,
+	})
+		.then(data => {
+			const modifiedData = data.map(contact => {
+				return {
+					id: contact.id,
+					firstName: contact.firstName.firstName,
+					lastName: contact.lastName.lastName,
+				}
+			})
+			res.send(modifiedData)
+		})
+		.catch(err => {
+			res.status(500).send({
+				message:
+					err.message || 'Some error occurred while retrieving contacts.',
+			})
+		})
 }
 
 exports.findById = (req, res) => {
-	// const id = req.params.id
-	// Contact.findOne({
-	// 	where: { id: id },
-	// 	include: [
-	// 		{
-	// 			model: User,
-	// 			as: 'user',
-	// 			include: [
-	// 				{
-	// 					model: Address,
-	// 					as: 'address',
-	// 				},
-	// 			],
-	// 		},
-	// 	],
-	// })
-	// 	.then(data => {
-	// 		const modifiedData = {
-	// 			id: data.id,
-	// 			phone_number: data.phone_number,
-	// 			is_important: data.is_important,
-	// 			first_name: data.user.first_name,
-	// 			last_name: data.user.last_name,
-	// 			birth_date: data.user.birth_date,
-	// 			email: data.user.email,
-	// 			city: data.user.address.city,
-	// 			street: data.user.address.street,
-	// 			house_number: data.user.address.house_number,
-	// 			apartment_number: data.user.address.apartment_number,
-	// 		}
-	// 		res.send(modifiedData)
-	// 	})
-	// 	.catch(err => {
-	// 		res.status(500).send({
-	// 			message:
-	// 				err.message || 'Some error occurred while retrieving contacts.',
-	// 		})
-	// 	})
+	const id = req.params.id
+	Contact.findOne({
+		where: { id: id },
+		include: [
+			{
+				model: FirstName,
+				as: 'firstName',
+			},
+			{
+				model: LastName,
+				as: 'lastName',
+			},
+			{
+				model: MiddleName,
+				as: 'middleName',
+			},
+			{
+				model: Street,
+				as: 'street',
+			},
+		],
+	})
+		.then(data => {
+			const modifiedData = {
+				id: data.id,
+				firstName: data.firstName.firstName,
+				lastName: data.lastName.lastName,
+				middleName: data.middleName.middleName,
+				street: data.street.street,
+				house: data.house,
+				corpus: data.corpus,
+				flat: data.flat,
+				phone: data.phone,
+			}
+			res.send(modifiedData)
+		})
+		.catch(err => {
+			res.status(500).send({
+				message:
+					err.message || 'Some error occurred while retrieving contacts.',
+			})
+		})
 }
 
-exports.generateByCount = (req, res) => {
+function getRandomInt(min, max) {
+	min = Math.ceil(min)
+	max = Math.floor(max)
+	return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+exports.generateByCount = async (req, res) => {
 	const count = req.params.count
 	const contacts = []
+	const firstNameCount = await FirstName.count()
+	const lastNameCount = await LastName.count()
+	const middleNameCount = await MiddleName.count()
+	const streetCount = await Street.count()
+
 	for (let i = 0; i < count; i++) {
-		const firstNameId = FirstName.findOne({
-			order: db.sequelize.random(),
-		}).then(encounter => {
-			return encounter.id
-		})
-		const lastNameId = 0
-		const middleNameId = 0
-		const streetId = 0
+		if (
+			firstNameCount == 0 ||
+			lastNameCount == 0 ||
+			middleNameCount == 0 ||
+			streetCount == 0
+		) {
+			return res.send(
+				`<p>Error creating data: firstNameCount, lastNameCount, middleNameCount, streetCount not found</p>
+				<a href="http://localhost:8080/api/firstNames/generateByCount/10" target="_blank">generate firstNames</a>
+				<a href="http://localhost:8080/api/lastNames/generateByCount/10" target="_blank">generate lastNames</a>
+				<a href="http://localhost:8080/api/middleNames/generateByCount/10" target="_blank">generate middleNames</a>
+				<a href="http://localhost:8080/api/streets/generateByCount/10" target="_blank">generate streets</a>`
+			)
+		}
 
 		// TODO: ELASTICSERACH по всем полям,
 		const contact = {
-			firstNameId,
-			lastNameId,
-			middleNameId,
-			streetId,
-			house: '0',
-			corpus: '0',
-			flat: 0,
+			firstNameId: getRandomInt(1, firstNameCount),
+			lastNameId: getRandomInt(1, lastNameCount),
+			middleNameId: getRandomInt(1, middleNameCount),
+			streetId: getRandomInt(1, streetCount),
+			house: faker.location.buildingNumber(),
+			corpus: faker.location.buildingNumber(),
+			flat: faker.number.int({ min: 1, max: 25 }),
 			phone: faker.phone.number({ style: 'national' }),
 		}
-		console.log(contact)
 		contacts.push(contact)
 	}
 	try {
-		// Contact.bulkCreate(contacts)
+		Contact.bulkCreate(contacts)
 		res.send(`Successfully created ${count} contacts.`)
 	} catch (error) {
 		res.send('Error creating data:', error)
 	}
-	// const createData = async numUsers => {
-	// 	const users = []
-	// 	const contacts = []
-	// 	const addresses = []
-	// 	for (let i = 0; i < numUsers; i++) {
-	// 		const user = {
-	// 			first_name: faker.person.firstName(),
-	// 			last_name: faker.person.lastName(),
-	// 			birth_date: faker.date.between({
-	// 				from: '1970-01-01T00:00:00.000Z',
-	// 				to: '2023-01-01T00:00:00.000Z',
-	// 			}),
-	// 			email: faker.internet.email(),
-	// 		}
-	// 		users.push(user)
-	// 	}
-	// 	try {
-	// 		// Создание пользователей
-	// 		const createdUsers = await db.users.bulkCreate(users, { returning: true })
-	// 		// Создание контактов и адресов для каждого пользователя
-	// 		for (const user of createdUsers) {
-	// 			contacts.push({
-	// 				phone_number: faker.phone.number({ style: 'national' }),
-	// 				is_important: faker.datatype.boolean(),
-	// 				user_id: user.id,
-	// 			})
-	// 			addresses.push({
-	// 				city: faker.location.city(),
-	// 				street: faker.location.street(),
-	// 				house_number: faker.location.buildingNumber(),
-	// 				apartment_number: faker.location.secondaryAddress(),
-	// 				user_id: user.id,
-	// 			})
-	// 		}
-	// 		// Создание контактов
-	// 		await db.contacts.bulkCreate(contacts)
-	// 		// Создание адресов
-	// 		await db.addresses.bulkCreate(addresses)
-	// 		console.log(
-	// 			`Successfully created ${numUsers} users with contacts and addresses.`
-	// 		)
-	// 		res.send(
-	// 			`Successfully created ${numUsers} users with contacts and addresses.`
-	// 		)
-	// 	} catch (error) {
-	// 		console.error('Error creating data:', error)
-	// 		res.send('Error creating data:', error)
-	// 	}
-	// }
-	// createData(count)
 }
 
 exports.delete = (req, res) => {
