@@ -4,14 +4,44 @@ const FirstName = db.firstName
 const LastName = db.lastName
 const MiddleName = db.middleName
 const Street = db.street
-// const User = db.users
-// const Address = db.addresses
+
+const Op = db.Sequelize.Op
 
 const { faker } = require('@faker-js/faker')
 
-exports.findAll = (req, res) => {
-	const offset = req.query.offset
+function count(where) {
+	return Contact.count({
+		include: [
+			{
+				model: FirstName,
+				as: 'firstName',
+			},
+			{
+				model: LastName,
+				as: 'lastName',
+			},
+		],
+		order: [
+			[{ model: FirstName }, 'firstName', 'ASC'],
+			[{ model: LastName }, 'lastName', 'ASC'],
+		],
+		where,
+	}).then(data => {
+		return data
+	})
+}
+
+exports.findAll = async (req, res) => {
 	const limit = req.query.limit
+	const page = req.query.page
+	const offset = (page - 1) * limit
+	const request = req.query.request
+	const countNumber = await count({
+		[Op.or]: [
+			{ '$firstName.firstName$': { [Op.like]: `%${request}%` } },
+			{ '$lastName.lastName$': { [Op.like]: `%${request}%` } },
+		],
+	})
 
 	Contact.findAll({
 		include: [
@@ -30,6 +60,12 @@ exports.findAll = (req, res) => {
 		],
 		offset,
 		limit,
+		where: {
+			[Op.or]: [
+				{ '$firstName.firstName$': { [Op.like]: `%${request}%` } },
+				{ '$lastName.lastName$': { [Op.like]: `%${request}%` } },
+			],
+		},
 	})
 		.then(data => {
 			const modifiedData = data.map(contact => {
@@ -39,7 +75,10 @@ exports.findAll = (req, res) => {
 					lastName: contact.lastName.lastName,
 				}
 			})
-			res.send(modifiedData)
+			res.send({
+				count: countNumber,
+				data: modifiedData,
+			})
 		})
 		.catch(err => {
 			res.status(500).send({
@@ -48,6 +87,49 @@ exports.findAll = (req, res) => {
 			})
 		})
 }
+
+// exports.findByRequest = (req, res) => {
+// 	const request = req.query.request
+
+// 	Contact.findAll({
+// 		include: [
+// 			{
+// 				model: FirstName,
+// 				as: 'firstName',
+// 			},
+// 			{
+// 				model: LastName,
+// 				as: 'lastName',
+// 			},
+// 		],
+// 		order: [
+// 			[{ model: FirstName }, 'firstName', 'ASC'],
+// 			[{ model: LastName }, 'lastName', 'ASC'],
+// 		],
+// 		where: {
+// 			[Op.or]: [
+// 				{ '$firstName.firstName$': { [Op.like]: `%${request}%` } },
+// 				{ '$lastName.lastName$': { [Op.like]: `%${request}%` } },
+// 			],
+// 		},
+// 	})
+// 		.then(data => {
+// 			const modifiedData = data.map(contact => {
+// 				return {
+// 					id: contact.id,
+// 					firstName: contact.firstName.firstName,
+// 					lastName: contact.lastName.lastName,
+// 				}
+// 			})
+// 			res.send(modifiedData)
+// 		})
+// 		.catch(err => {
+// 			res.status(500).send({
+// 				message:
+// 					err.message || 'Some error occurred while retrieving contacts.',
+// 			})
+// 		})
+// }
 
 exports.findById = (req, res) => {
 	const id = req.params.id

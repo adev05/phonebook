@@ -4,6 +4,10 @@ module.exports = app => {
 
 	router.get('/findAll', contacts.findAll)
 
+	// router.get('/count', contacts.count)
+
+	// router.get('/findByRequest', contacts.findByRequest)
+
 	router.get('/findById/:id', contacts.findById)
 
 	router.get('/generateByCount/:count', contacts.generateByCount)
