@@ -9,7 +9,7 @@ const Op = db.Sequelize.Op
 
 const { faker } = require('@faker-js/faker')
 
-function count(where) {
+function count(request) {
 	return Contact.count({
 		include: [
 			{
@@ -25,23 +25,25 @@ function count(where) {
 			[{ model: FirstName }, 'firstName', 'ASC'],
 			[{ model: LastName }, 'lastName', 'ASC'],
 		],
-		where,
+		where: request && {
+			[Op.or]: [
+				{ '$firstName.firstName$': { [Op.like]: `%${request}%` } },
+				{ '$lastName.lastName$': { [Op.like]: `%${request}%` } },
+			],
+		},
 	}).then(data => {
 		return data
 	})
 }
 
 exports.findAll = async (req, res) => {
-	const limit = req.query.limit
-	const page = req.query.page
+	const limit = req.query.limit || 0
+	const page = req.query.page || 1
 	const offset = (page - 1) * limit
-	const request = req.query.request
-	const countNumber = await count({
-		[Op.or]: [
-			{ '$firstName.firstName$': { [Op.like]: `%${request}%` } },
-			{ '$lastName.lastName$': { [Op.like]: `%${request}%` } },
-		],
-	})
+	const request = req.query.request || ''
+	const countNumber = await count(request)
+
+	console.log({ limit, page, offset, request, countNumber })
 
 	Contact.findAll({
 		include: [
@@ -58,9 +60,9 @@ exports.findAll = async (req, res) => {
 			[{ model: FirstName }, 'firstName', 'ASC'],
 			[{ model: LastName }, 'lastName', 'ASC'],
 		],
-		offset,
-		limit,
-		where: {
+		offset: offset,
+		limit: limit || null,
+		where: request && {
 			[Op.or]: [
 				{ '$firstName.firstName$': { [Op.like]: `%${request}%` } },
 				{ '$lastName.lastName$': { [Op.like]: `%${request}%` } },
