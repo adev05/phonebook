@@ -43,8 +43,6 @@ exports.findAll = async (req, res) => {
 	const request = req.query.request || ''
 	const countNumber = await count(request)
 
-	console.log({ limit, page, offset, request, countNumber })
-
 	Contact.findAll({
 		include: [
 			{
@@ -89,49 +87,6 @@ exports.findAll = async (req, res) => {
 			})
 		})
 }
-
-// exports.findByRequest = (req, res) => {
-// 	const request = req.query.request
-
-// 	Contact.findAll({
-// 		include: [
-// 			{
-// 				model: FirstName,
-// 				as: 'firstName',
-// 			},
-// 			{
-// 				model: LastName,
-// 				as: 'lastName',
-// 			},
-// 		],
-// 		order: [
-// 			[{ model: FirstName }, 'firstName', 'ASC'],
-// 			[{ model: LastName }, 'lastName', 'ASC'],
-// 		],
-// 		where: {
-// 			[Op.or]: [
-// 				{ '$firstName.firstName$': { [Op.like]: `%${request}%` } },
-// 				{ '$lastName.lastName$': { [Op.like]: `%${request}%` } },
-// 			],
-// 		},
-// 	})
-// 		.then(data => {
-// 			const modifiedData = data.map(contact => {
-// 				return {
-// 					id: contact.id,
-// 					firstName: contact.firstName.firstName,
-// 					lastName: contact.lastName.lastName,
-// 				}
-// 			})
-// 			res.send(modifiedData)
-// 		})
-// 		.catch(err => {
-// 			res.status(500).send({
-// 				message:
-// 					err.message || 'Some error occurred while retrieving contacts.',
-// 			})
-// 		})
-// }
 
 exports.findById = (req, res) => {
 	const id = req.params.id
@@ -229,25 +184,139 @@ exports.generateByCount = async (req, res) => {
 	}
 }
 
-exports.delete = (req, res) => {
-	// const id = req.params.id
-	// Contact.destroy({
-	// 	where: { id: id },
-	// })
-	// 	.then(num => {
-	// 		if (num == 1) {
-	// 			res.send({
-	// 				message: 'Contact was deleted successfully!',
-	// 			})
-	// 		} else {
-	// 			res.send({
-	// 				message: `Cannot delete Contact with id=${id}. Maybe Contact was not found!`,
-	// 			})
-	// 		}
-	// 	})
-	// 	.catch(err => {
-	// 		res.status(500).send({
-	// 			message: 'Could not delete Contact with id=' + id,
-	// 		})
-	// 	})
+exports.update = async (req, res) => {
+	const id = req.params.id
+
+	try {
+		// Find the contact first
+		const contact = await Contact.findByPk(id, {
+			include: [
+				{ model: FirstName, as: 'firstName' },
+				{ model: LastName, as: 'lastName' },
+				{ model: MiddleName, as: 'middleName' },
+				{ model: Street, as: 'street' },
+			],
+		})
+
+		if (!contact) {
+			return res.status(404).send({
+				message: `Contact with id ${id} not found`,
+			})
+		}
+
+		// Update firstName if provided
+		if (req.body.firstName) {
+			const [firstName, created] = await FirstName.findOrCreate({
+				where: { firstName: req.body.firstName },
+			})
+			await contact.update({ firstNameId: firstName.id })
+		}
+
+		// Update lastName if provided
+		if (req.body.lastName) {
+			const [lastName, created] = await LastName.findOrCreate({
+				where: { lastName: req.body.lastName },
+			})
+			await contact.update({ lastNameId: lastName.id })
+		}
+
+		// Update middleName if provided
+		if (req.body.middleName) {
+			const [middleName, created] = await MiddleName.findOrCreate({
+				where: { middleName: req.body.middleName },
+			})
+			await contact.update({ middleNameId: middleName.id })
+		}
+
+		// Update street if provided
+		if (req.body.street) {
+			const [street, created] = await Street.findOrCreate({
+				where: { street: req.body.street },
+			})
+			await contact.update({ streetId: street.id })
+		}
+
+		// Update contact fields
+		await contact.update({
+			house: req.body.house || contact.house,
+			corpus: req.body.corpus || contact.corpus,
+			flat: req.body.flat || contact.flat,
+			phone: req.body.phone || contact.phone,
+		})
+
+		// Fetch updated contact with associations
+		const updatedContact = await Contact.findByPk(id, {
+			include: [
+				{ model: FirstName, as: 'firstName' },
+				{ model: LastName, as: 'lastName' },
+				{ model: MiddleName, as: 'middleName' },
+				{ model: Street, as: 'street' },
+			],
+		})
+
+		// Format response data
+		const modifiedData = {
+			id: updatedContact.id,
+			firstName: updatedContact.firstName.firstName,
+			lastName: updatedContact.lastName.lastName,
+			middleName: updatedContact.middleName.middleName,
+			street: updatedContact.street.street,
+			house: updatedContact.house,
+			corpus: updatedContact.corpus,
+			flat: updatedContact.flat,
+			phone: updatedContact.phone,
+		}
+
+		res.send(modifiedData)
+	} catch (error) {
+		res.status(500).send({
+			message: error.message || 'Error updating contact',
+		})
+	}
+}
+
+exports.delete = async (req, res) => {
+	const id = req.params.id
+
+	try {
+		// Находим контакт перед удалением, чтобы вернуть его данные
+		const contact = await Contact.findOne({
+			where: { id: id },
+			include: [
+				{ model: FirstName, as: 'firstName' },
+				{ model: LastName, as: 'lastName' },
+				{ model: MiddleName, as: 'middleName' },
+				{ model: Street, as: 'street' },
+			],
+		})
+
+		if (!contact) {
+			return res.status(404).send({
+				message: `Contact with id ${id} not found`,
+			})
+		}
+
+		// Форматируем данные перед удалением
+		const modifiedData = {
+			id: contact.id,
+			firstName: contact.firstName.firstName,
+			lastName: contact.lastName.lastName,
+			middleName: contact.middleName.middleName,
+			street: contact.street.street,
+			house: contact.house,
+			corpus: contact.corpus,
+			flat: contact.flat,
+			phone: contact.phone,
+		}
+
+		// Удаляем контакт
+		await contact.destroy()
+
+		// Возвращаем удаленные данные
+		res.send(modifiedData)
+	} catch (error) {
+		res.status(500).send({
+			message: error.message || 'Error deleting contact',
+		})
+	}
 }

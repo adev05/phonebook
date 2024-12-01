@@ -44,7 +44,6 @@ import {
 } from './ui/pagination'
 import React from 'react'
 import { observer } from 'mobx-react-lite'
-import { ContactsStore } from '@/store/contactsStore'
 import { Meta } from '@/utils/meta'
 import {
 	Sidebar,
@@ -58,7 +57,12 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from './ui/sidebar'
-import { ContactsContext } from '@/app/[contact]/layout'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { ContactsStore } from '@/store/ContactsStore'
+import InfiniteScroll from 'react-infinite-scroll-component'
+import { SearchStore } from '@/store/searchStore'
+import ContactsSkeleton from './ContactsSkeleton'
 
 // interface Contact {
 // 	id: number
@@ -71,11 +75,27 @@ import { ContactsContext } from '@/app/[contact]/layout'
 // const LIMIT = 30
 
 const AppSidebar: React.FC = observer(() => {
-	const contactsStore = React.useContext(ContactsContext)
+	const params = useParams()
+	const contactId = params.contact as string
+	const contactsStore = React.useMemo(() => new ContactsStore(), [])
+	const searchStore = React.useMemo(() => new SearchStore(), [])
 
 	React.useEffect(() => {
-		contactsStore?.getContacts()
+		contactsStore.getContacts()
 	}, [contactsStore])
+
+	const handleSearch = React.useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			searchStore.setQuery(e.target.value, query => {
+				if (query) {
+					contactsStore.setSearchQuery(query)
+				} else {
+					contactsStore.reset()
+				}
+			})
+		},
+		[searchStore, contactsStore]
+	)
 
 	// console.log('sidebar has been rendered', contactsStore.list)
 
@@ -142,24 +162,44 @@ const AppSidebar: React.FC = observer(() => {
 
 	return (
 		<Sidebar>
-			{/* <SidebarHeader /> */}
-			<SidebarContent>
+			<SidebarHeader>
+				{/* <SidebarGroupLabel>Контакты</SidebarGroupLabel> */}
+				<Input
+					placeholder='Поиск'
+					value={searchStore.query}
+					onChange={handleSearch}
+				/>
+			</SidebarHeader>
+			<SidebarContent id='sidebar-content'>
 				<SidebarGroup>
-					<SidebarGroupLabel>Контакты</SidebarGroupLabel>
 					<SidebarMenu>
-						{contactsStore?.list.map(item => (
-							<SidebarMenuItem key={item.id}>
-								<SidebarMenuButton asChild>
-									<a
-										href={String(item.id)}
-									>{`${item.firstName} ${item.lastName}`}</a>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						))}
+						<InfiniteScroll
+							dataLength={contactsStore.list.length}
+							next={() => contactsStore.getContacts()}
+							hasMore={contactsStore.hasMore}
+							loader={<ContactsSkeleton />}
+							endMessage={<></>}
+							scrollableTarget='sidebar-content'
+						>
+							{contactsStore.list.map(item => (
+								<SidebarMenuItem key={item.id}>
+									<SidebarMenuButton
+										asChild
+										isActive={item.id == Number(contactId)}
+									>
+										<Link
+											href={String(item.id)}
+										>{`${item.firstName} ${item.lastName}`}</Link>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
+							))}
+						</InfiniteScroll>
 					</SidebarMenu>
 				</SidebarGroup>
 			</SidebarContent>
-			{/* <SidebarFooter /> */}
+			<SidebarFooter>
+				<SidebarGroupLabel>{contactsStore.count} контактов</SidebarGroupLabel>
+			</SidebarFooter>
 		</Sidebar>
 		// <aside className='w-96 h-full flex flex-col gap-2 p-4'>
 		// 	<div className='flex justify-between items-center'>

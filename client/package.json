@@ -29,8 +29,10 @@
     "mobx": "^6.13.5",
     "mobx-react-lite": "^4.0.7",
     "next": "14.2.8",
+    "next-themes": "^0.4.3",
     "react": "^18",
     "react-dom": "^18",
+    "react-infinite-scroll-component": "^6.1.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },

@@ -1,6 +1,7 @@
 'use client'
 
 import { observer } from 'mobx-react-lite'
+import { useParams } from 'next/navigation'
 // import { Dispatch, SetStateAction, useState } from 'react'
 // import { Badge } from './ui/badge'
 // import { Avatar, AvatarFallback } from './ui/avatar'
@@ -9,7 +10,8 @@ import { observer } from 'mobx-react-lite'
 // import { ArrowLongLeftIcon, PencilIcon } from '@heroicons/react/16/solid'
 import React from 'react'
 
-const Contact: React.FC<{ contactId: number }> = observer(({ contactId }) => {
+const Contact: React.FC = observer(() => {
+	const { contactId } = useParams()
 	console.log('contact has been rendered')
 	return <p>Contact {contactId}</p>
 	// const [contact, setContact] = React.useState<Contact | null>(null)

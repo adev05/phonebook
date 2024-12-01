@@ -1,31 +1,8 @@
-'use client'
-
-// import { useEffect, useState } from 'react'
-// import Contact from '../components/contact'
-// import Sidebar from '../components/sidebar'
-
-const Home: React.FC = () => {
-	// const [selectedContactId, setSelectedContactId] = useState<
-	// 	number | undefined
-	// >()
-
-	// const [deletedContactId, setDeletedContactId] = useState<number | undefined>()
-
-	// useEffect(() => {
-	// 	const handleKeyDown = (event: KeyboardEvent) => {
-	// 		if (event.key === 'Escape') {
-	// 			setSelectedContactId(undefined)
-	// 		}
-	// 	}
-
-	// 	window.addEventListener('keydown', handleKeyDown)
-
-	// 	return () => {
-	// 		window.removeEventListener('keydown', handleKeyDown)
-	// 	}
-	// }, [])
-
-	return <>Home</>
+export default function Home() {
+	return (
+		<div className='p-4'>
+			<h1 className='text-2xl font-bold mb-4'>Телефонная книга</h1>
+			<p>Добро пожаловать! Выберите контакт или создайте новый.</p>
+		</div>
+	)
 }
-
-export default Home

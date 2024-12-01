@@ -4,12 +4,15 @@ import { makeAutoObservable, runInAction } from 'mobx'
 import axios from 'axios'
 import { apiUrls } from '@/config/apiUrls'
 
-const LIMIT = 30
+const LIMIT = 100
 
 export class ContactsStore {
 	_list: Contact[] = []
 	_meta: Meta = Meta.initial
-	contact_id: number | null = null
+	_page: number = 1
+	_count: number = 0
+	_hasMore: boolean = true
+	_searchQuery: string = ''
 
 	constructor() {
 		makeAutoObservable(this)
@@ -23,34 +26,69 @@ export class ContactsStore {
 		return this._meta
 	}
 
-	setContactId(id: number | null) {
-		this.contact_id = id
+	get count() {
+		return this._count
 	}
 
-	addContact(contact: Contact) {
-		this._list.push(contact)
+	get hasMore() {
+		return this._hasMore
+	}
+
+	setSearchQuery(query: string) {
+		this._searchQuery = query
+		this._page = 1
+		this._list = []
+		this._hasMore = true
+		this.getContacts()
+	}
+
+	updateContactInList(updatedContact: Contact) {
+		const index = this._list.findIndex(
+			contact => contact.id === updatedContact.id
+		)
+		if (index !== -1) {
+			this._list[index] = updatedContact
+		}
 	}
 
 	async getContacts() {
-		console.log('getContacts called')
-		if (this._meta == Meta.loading) return
+		if (this._meta === Meta.loading || !this._hasMore) return
+
 		this._meta = Meta.loading
 		try {
-			const page = null
-			const search = null
 			const response = await axios(
-				apiUrls.withBaseUrl(apiUrls.contacts.findAll(LIMIT, page, search))
+				apiUrls.withBaseUrl(
+					apiUrls.contacts.findAll(LIMIT, this._page, this._searchQuery)
+				)
 			)
 
-			console.log({ response })
-
 			runInAction(() => {
-				this._list = response.data.data
+				// Если это первая страница или новый поиск, заменяем список
+				// Иначе добавляем к существующему
+				if (this._page === 1) {
+					this._list = response.data.data
+				} else {
+					this._list = [...this._list, ...response.data.data]
+				}
+
+				this._count = response.data.count
+				this._hasMore = this._page * LIMIT <= this._count
+				this._page += 1
 				this._meta = Meta.success
 			})
 		} catch (error) {
-			this._meta = Meta.error
-			console.error(error)
+			runInAction(() => {
+				this._meta = Meta.error
+				console.error('Error fetching contacts:', error)
+			})
 		}
+	}
+
+	reset() {
+		this._searchQuery = ''
+		this._page = 1
+		this._list = []
+		this._hasMore = true
+		this.getContacts()
 	}
 }
