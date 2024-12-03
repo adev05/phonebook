@@ -54,13 +54,13 @@ export default function Home() {
 					</Button>
 				</div>
 
-				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full px-4 mb-8'>
+				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full mb-8'>
 					{features.map((feature, index) => (
 						<Card
 							key={index}
 							className='p-4 sm:p-6 hover:shadow-lg transition-shadow duration-300'
 						>
-							<div className='flex flex-col items-center text-center gap-2 py-4'>
+							<div className='flex flex-col items-center text-center gap-4 py-4'>
 								<div className='mb-2 sm:mb-3 p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600'>
 									{feature.icon}
 								</div>
