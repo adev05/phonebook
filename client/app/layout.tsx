@@ -6,6 +6,9 @@ import AppSidebar from '@/components/AppSidebar'
 import React from 'react'
 import { ThemeProvider } from 'next-themes'
 import { Header } from '@/components/Header'
+import { Inter } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
 export default function RootLayout({
 	children,
@@ -13,7 +16,7 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html lang='en'>
+		<html lang='en' className={inter.className} suppressHydrationWarning>
 			<body>
 				<ThemeProvider
 					attribute='class'
@@ -25,7 +28,7 @@ export default function RootLayout({
 						<AppSidebar />
 						<div className='flex flex-col h-screen w-full'>
 							<Header />
-							<main className='flex-1 p-4'>{children}</main>
+							{children}
 						</div>
 					</SidebarProvider>
 				</ThemeProvider>

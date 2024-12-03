@@ -12,6 +12,8 @@ module.exports = app => {
 
 	router.get('/generateByCount/:count', contacts.generateByCount)
 
+	router.post('/create', contacts.create)
+
 	router.put('/update/:id', contacts.update)
 
 	router.delete('/delete/:id', contacts.delete)

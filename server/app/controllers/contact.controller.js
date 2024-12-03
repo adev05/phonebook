@@ -275,6 +275,71 @@ exports.update = async (req, res) => {
 	}
 }
 
+exports.create = async (req, res) => {
+	try {
+		// Создаем или находим записи в связанных таблицах
+		const [firstName] = await FirstName.findOrCreate({
+			where: { firstName: req.body.firstName },
+		})
+
+		const [lastName] = await LastName.findOrCreate({
+			where: { lastName: req.body.lastName },
+		})
+
+		const [middleName] = await MiddleName.findOrCreate({
+			where: { middleName: req.body.middleName },
+		})
+
+		const [street] = await Street.findOrCreate({
+			where: { street: req.body.street },
+		})
+
+		// Создаем новый контакт
+		const contact = await Contact.create({
+			firstNameId: firstName.id,
+			lastNameId: lastName.id,
+			middleNameId: middleName.id,
+			streetId: street.id,
+			house: req.body.house,
+			corpus: req.body.corpus,
+			flat: req.body.flat,
+			phone: req.body.phone,
+		})
+
+		// Получаем полные данные контакта со всеми связями
+		const newContact = await Contact.findOne({
+			where: { id: contact.id },
+			include: [
+				{
+					model: FirstName,
+					as: 'firstName',
+				},
+				{
+					model: LastName,
+					as: 'lastName',
+				},
+				{
+					model: MiddleName,
+					as: 'middleName',
+				},
+				{
+					model: Street,
+					as: 'street',
+				},
+			],
+		})
+
+		res.send({
+			message: 'Contact was created successfully!',
+			data: newContact,
+		})
+	} catch (err) {
+		res.status(500).send({
+			message: err.message || 'Some error occurred while creating the Contact.',
+		})
+	}
+}
+
 exports.delete = async (req, res) => {
 	const id = req.params.id
 

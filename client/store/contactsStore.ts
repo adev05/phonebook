@@ -51,6 +51,11 @@ export class ContactsStore {
 		}
 	}
 
+	addContactToList(newContact: Contact) {
+		this._list = [newContact, ...this._list]
+		this._count += 1
+	}
+
 	async getContacts() {
 		if (this._meta === Meta.loading || !this._hasMore) return
 
@@ -63,8 +68,6 @@ export class ContactsStore {
 			)
 
 			runInAction(() => {
-				// Если это первая страница или новый поиск, заменяем список
-				// Иначе добавляем к существующему
 				if (this._page === 1) {
 					this._list = response.data.data
 				} else {

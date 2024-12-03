@@ -100,6 +100,32 @@ export class ContactStore {
 		}
 	}
 
+	async createContact(contact: Omit<Contact, 'id'>) {
+		this._meta = Meta.loading
+		try {
+			const response = await axios.post(
+				apiUrls.withBaseUrl(apiUrls.contacts.create),
+				contact
+			)
+
+			runInAction(() => {
+				this._contact = response.data
+				this._meta = Meta.success
+				if (this.contactsStore) {
+					this.contactsStore.addContactToList(response.data)
+				}
+			})
+
+			return true
+		} catch (error) {
+			runInAction(() => {
+				this._meta = Meta.error
+				console.error('Error creating contact:', error)
+			})
+			return false
+		}
+	}
+
 	async deleteContact() {
 		if (!this._contact) return
 

@@ -16,7 +16,7 @@ import {
 } from '@heroicons/react/24/outline'
 import ContactSkeleton from '@/components/ContactSkeleton'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { ArrowLeftIcon } from '@heroicons/react/20/solid'
 
 const ContactPage = observer(() => {
 	const router = useRouter()
@@ -71,9 +71,9 @@ const ContactPage = observer(() => {
 		: contactStore.contact
 
 	return (
-		<div className='h-full flex flex-col'>
+		<div className='flex flex-col'>
 			<div className='flex justify-between items-center p-4 border-b'>
-				<div className='flex items-center gap-4'>
+				<div className='w-full flex items-center gap-4'>
 					{contactStore.isEditing ? (
 						<>
 							<Button
@@ -87,14 +87,24 @@ const ContactPage = observer(() => {
 							</Button>
 						</>
 					) : (
-						<div className='flex gap-2'>
+						<div className='w-full flex gap-2'>
+							<Button
+								variant='outline'
+								onClick={() => router.push('/')}
+								className='mr-auto'
+							>
+								<ArrowLeftIcon className='h-4 w-4' />
+								Назад
+							</Button>
 							<Button
 								variant='outline'
 								onClick={() => contactStore.setIsEditing(true)}
 							>
+								<PencilIcon className='h-4 w-4' />
 								Редактировать
 							</Button>
 							<Button variant='destructive' onClick={handleDelete}>
+								<TrashIcon className='h-4 w-4' />
 								Удалить
 							</Button>
 						</div>

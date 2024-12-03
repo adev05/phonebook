@@ -3,11 +3,12 @@ import { Skeleton } from './ui/skeleton'
 
 const ContactSkeleton: React.FC = () => {
 	return (
-		<div className='h-full flex flex-col'>
+		<div className='flex flex-col'>
 			<div className='flex justify-between items-center p-4 border-b'>
-				<div className='flex gap-2'>
-					<Skeleton className='h-9 w-[130px]' />
-					<Skeleton className='h-9 w-[85px]' />
+				<div className='w-full flex gap-2'>
+					<Skeleton className='h-9 w-[100px] mr-auto' />
+					<Skeleton className='h-9 w-[162px]' />
+					<Skeleton className='h-9 w-[113px]' />
 				</div>
 			</div>
 
